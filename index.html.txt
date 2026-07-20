@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Store Update Helper · App & Services Info</title>
+  <style>
+    /* ----- global reset & design tokens ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --transition-speed: 0.25s;
+      --border-radius-card: 1.25rem;
+      --border-radius-btn: 2.5rem;
+
+      /* light mode (default) */
+      --bg-primary: #f4f7fc;
+      --bg-surface: rgba(255, 255, 255, 0.75);
+      --bg-glass: rgba(255, 255, 255, 0.65);
+      --text-primary: #1a1e2b;
+      --text-secondary: #5a6170;
+      --accent: #2563eb;
+      --accent-light: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --divider: rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.04);
+      --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.06);
+      --backdrop-blur: blur(16px);
+      --nav-bg: rgba(255, 255, 255, 0.8);
+      --toast-bg: #1e293b;
+      --toast-text: #f1f5f9;
+    }
+
+    body.dark {
+      --bg-primary: #0f172a;
+      --bg-surface: rgba(30, 41, 59, 0.7);
+      --bg-glass: rgba(30, 41, 59, 0.6);
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --divider: rgba(255, 255, 255, 0.08);
+      --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.3);
+      --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.4);
+      --nav-bg: rgba(15, 23, 42, 0.8);
+      --toast-bg: #f1f5f9;
+      --toast-text: #0f172a;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background var(--transition-speed), color var(--transition-speed);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 0 80px 0;
+    }
+
+    /* main mobile container */
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-primary);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+      border-radius: 2rem 2rem 0 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ----- glassmorphism panels ----- */
+    .glass-panel {
+      background: var(--bg-glass);
+      backdrop-filter: var(--backdrop-blur);
+      -webkit-backdrop-filter: var(--backdrop-blur);
+      border-radius: var(--border-radius-card);
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* ----- typography ----- */
+    h1, h2, h3, h4 {
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .text-muted {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* ----- buttons & ripple ----- */
+    .btn {
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--border-radius-btn);
+      padding: 0.7rem 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-outline {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      border-radius: 1.5rem;
+    }
+
+    .ripple {
+      position: relative;
+    }
+
+    .ripple::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 50%;
+      transform: scale(1);
+      pointer-events: none;
+    }
+
+    .ripple:active::after {
+      opacity: 0.4;
+      transform: scale(20);
+      transition: transform 0.5s, opacity 0.7s;
+    }
+
+    /* ----- pages / screens ----- */
+    .screen {
+      display: none;
+      flex: 1;
+      padding: 1.2rem;
+      flex-direction: column;
+      gap: 1.5rem;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeSlide {
+      0% { opacity: 0.6; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ----- home stats ----- */
+    .stats-grid {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1 1 30%;
+      background: var(--bg-surface);
+      backdrop-filter: blur(12px);
+      padding: 1.2rem 0.5rem;
+      border-radius: 1.2rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .app-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    /* ----- scan animation ----- */
+    .scan-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 0deg, rgba(37,99,235,0.2) 360deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 2rem auto;
+      animation: spin 2s linear infinite;
+      box-shadow: 0 0 30px rgba(37,99,235,0.3);
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* app list cards */
+    .app-card {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      background: var(--bg-surface);
+      backdrop-filter: blur(12px);
+      padding: 1rem;
+      border-radius: 1.2rem;
+      margin-bottom: 0.8rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .app-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.08);
+    }
+
+    .app-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      background: linear-gradient(145deg, #4f46e5, #7c3aed);
+      color: white;
+    }
+
+    .app-icon.small {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      border-radius: 12px;
+    }
+
+    .badge {
+      padding: 0.25rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .badge.warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    /* bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.8rem 1rem;
+      border-radius: 2rem 2rem 0 0;
+      box-shadow: 0 -8px 25px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      transition: 0.2s;
+      background: none;
+      border: none;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .fab {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.5);
+      z-index: 12;
+      border: none;
+      font-size: 24px;
+    }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      padding: 0.8rem 1.8rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 20;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    .skeleton {
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 12px;
+    }
+
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .info-row:last-child { border-bottom: none; }
+
+    /* ----- menu section styles ----- */
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      padding-left: 0.3rem;
+      font-weight: 700;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+    }
+
+    .menu-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(12px);
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.1);
+    }
+
+    .menu-card .icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 0.2rem;
+    }
+
+    .menu-card h4 {
+      font-size: 0.9rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .menu-card p {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .menu-card .menu-btn {
+      align-self: flex-start;
+      margin-top: 0.3rem;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.7rem;
+      border-radius: 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .menu-card .menu-btn:hover {
+      opacity: 0.85;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border-radius: 2rem;
+      border: none;
+      outline: none;
+      background: var(--bg-surface);
+      backdrop-filter: blur(12px);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state .icon-big {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.6;
+    }
+
+    /* loading animation */
+    .loading-spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--divider);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 2rem auto;
+    }
+
+    /* ========== STYLES FOR ABOUT & PRIVACY PAGES ========== */
+    .page-header {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      animation: fadeSlide 0.4s ease;
+    }
+
+    .page-header .large-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: white;
+      margin: 0 auto 1rem;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+    }
+
+    .page-header h2 {
+      font-size: 1.6rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-header .version-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 0.3rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 0.3rem;
+    }
+
+    .info-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(12px);
+      border-radius: 1rem;
+      padding: 1.2rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1rem;
+    }
+
+    .info-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-card p, .info-card li {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .info-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .info-card ul li {
+      padding: 0.4rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-card ul li::before {
+      content: '✓';
+      color: var(--success);
+      font-weight: bold;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.8rem;
+    }
+
+    .button-row .btn {
+      flex: 1;
+      min-width: 100px;
+      font-size: 0.8rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 1.5rem;
+    }
+
+    .copyright {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      padding: 1.5rem 0;
+      opacity: 0.8;
+    }
+
+    .policy-section {
+      margin-bottom: 1.2rem;
+    }
+
+    .policy-section h4 {
+      font-size: 1rem;
+      margin-bottom: 0.4rem;
+      color: var(--accent);
+    }
+
+    .policy-section p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .important-notice {
+      background: rgba(245, 158, 11, 0.12);
+      border-left: 4px solid var(--warning);
+      padding: 1rem;
+      border-radius: 0.8rem;
+      margin: 1.2rem 0;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+
+    .last-updated {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+    }
+
+    .back-btn-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+    }
+
+    .scroll-content {
+      overflow-y: auto;
+      max-height: 65vh;
+      padding-right: 0.3rem;
+    }
+
+    /* ========== FULL-SCREEN OVERLAY STYLES ========== */
+    #promoOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    #promoOverlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #promoImage {
+      width: 90%;
+      max-width: 360px;
+      height: auto;
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      display: block;
+    }
+
+    #promoButton {
+      margin-top: 15px;
+      width: 90%;
+      max-width: 360px;
+      height: 55px;
+      background: #FFD400;
+      color: black;
+      font-weight: bold;
+      font-size: 20px;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(255, 212, 0, 0.4);
+      border: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #promoButton:hover {
+      transform: scale(1.03);
+      box-shadow: 0 12px 30px rgba(255, 212, 0, 0.6);
+    }
+
+    #promoButton:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body class="light">
+<div class="app-container" id="appContainer">
+  <!-- Toast -->
+  <div class="toast" id="toast">Notification</div>
+
+  <!-- screens -->
+  <div id="homeScreen" class="screen active">
+    <div class="logo-area">
+      <div class="app-logo">📦</div>
+      <div><h2>Store Update Helper</h2><span class="text-muted">App & Services Info</span></div>
+    </div>
+    
+    <div class="glass-panel" style="padding:1rem;">
+      <h3 style="margin-bottom:0.8rem;">⚡ Quick Settings</h3>
+      <button class="btn btn-outline" id="systemUpdateBtn" style="width:100%; margin-bottom:0.5rem;">⚙️ System Update Settings</button>
+      <button class="btn btn-outline" id="appSettingsBtn" style="width:100%; margin-bottom:0.5rem;">📱 Application Settings</button>
+      <button class="btn btn-outline" id="deviceInfoBtn" style="width:100%;">📋 Device Information</button>
+    </div>
+    
+    <div class="glass-panel" style="padding:1rem;">
+      <h3 style="margin-bottom:0.5rem;">🛠️ Troubleshooting Tips</h3>
+      <p class="text-muted" style="font-size:0.85rem;">• Clear Play Store cache if updates stuck<br>• Check date & time settings<br>• Ensure stable internet connection</p>
+    </div>
+  </div>
+
+  <div id="scanScreen" class="screen">
+    <h2>Analyzing Device</h2>
+    <div class="scan-circle" id="scanCircle"><span id="scanPercent" style="font-weight:bold; font-size:1.5rem;">0%</span></div>
+    <p id="scanStatus" class="text-muted" style="text-align:center;">Reading system information</p>
+  </div>
+
+  <div id="resultsScreen" class="screen">
+    <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+      <input type="text" id="searchInput" placeholder="Search apps..." class="glass-panel" style="flex:1; padding:0.8rem; border:none; outline:none; background: var(--bg-surface);">
+    </div>
+    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+      <button class="btn sort-btn active-filter" data-filter="all">All Apps</button>
+      <button class="btn sort-btn" data-filter="updates">Updates</button>
+      <button class="btn sort-btn" data-filter="uptodate">Up To Date</button>
+    </div>
+    <div id="appListContainer" style="overflow-y:auto; max-height:55vh;"></div>
+  </div>
+
+  <!-- NEW: Main Menu Screen -->
+  <div id="menuScreen" class="screen">
+    <h2>🔧 Main Menu</h2>
+    <input type="text" id="menuSearchInput" class="search-box" placeholder="Search utilities...">
+    <div id="menuContainer" style="overflow-y:auto; max-height:60vh; padding-right:0.2rem;">
+      <div class="loading-spinner" id="menuLoading"></div>
+      <div id="menuContent"></div>
+    </div>
+  </div>
+
+  <div id="settingsScreen" class="screen">
+    <h2>Settings & Info</h2>
+    <div class="glass-panel" style="padding:1rem; display:flex; justify-content:space-between;">
+      <span>🌙 Dark Mode</span>
+      <button id="darkToggle" class="btn-outline btn">Toggle</button>
+    </div>
+    <div class="glass-panel" style="padding:1rem; margin-top:1rem;">
+      <p><strong>Language:</strong> English (Mock)</p>
+    </div>
+    <div class="glass-panel" style="padding:1rem; margin-top:1rem;">
+      <h3>📱 System Information</h3>
+      <div class="info-row"><span>Google Play Services</span><strong id="sysPlayServices">24.18.56</strong></div>
+      <div class="info-row"><span>Google Play Store</span><strong id="sysPlayStore">41.2.21</strong></div>
+    </div>
+    <button id="aboutBtn" class="btn" style="margin-top:0.5rem;">📘 About App</button>
+    <button id="privacyBtn" class="btn">🔒 Privacy Policy</button>
+    <button id="shareBtn" class="btn">📤 Share App</button>
+  </div>
+
+  <!-- ========== ABOUT APP SCREEN ========== -->
+  <div id="aboutScreen" class="screen">
+    <button class="back-btn-header" id="aboutBackBtn">← Back</button>
+    <div class="scroll-content">
+      <div class="page-header">
+        <div class="large-icon">📦</div>
+        <h2>Store Update Helper</h2>
+        <p class="text-muted">App & Services Information Utility</p>
+        <span class="version-tag">v1.0.0</span>
+      </div>
+
+      <div class="info-card">
+        <h3>📋 Application Details</h3>
+        <div class="info-row"><span>Version</span><strong>1.0.0</strong></div>
+        <div class="info-row"><span>Build Number</span><strong>2024.07.20-001</strong></div>
+        <div class="info-row"><span>Developer</span><strong>UpdateHelper Team</strong></div>
+        <div class="info-row"><span>Category</span><strong>Tools & Utilities</strong></div>
+        <div class="info-row"><span>Release Date</span><strong>July 20, 2026</strong></div>
+      </div>
+
+      <div class="info-card">
+        <h3>📝 Description</h3>
+        <p>Store Update Helper is a lightweight utility designed to help Android users manage application updates, view system information, and access important device settings quickly. The app brings together version details, Google Play Services information, and system shortcuts in one convenient place without collecting personal data.</p>
+      </div>
+
+      <div class="info-card">
+        <h3>✨ Key Features</h3>
+        <ul>
+          <li>View installed app version information</li>
+          <li>Check Google Play Services version</li>
+          <li>Quick access to system update settings</li>
+          <li>App management shortcuts</li>
+          <li>Storage and battery information</li>
+          <li>Network and device details</li>
+          <li>Dark Mode support</li>
+          <li>No advertisements</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>📱 Compatibility</h3>
+        <p>✓ Android phones running Android 8.0 and above<br>✓ Android tablets with minimum 7-inch display<br>✓ Works offline for most features</p>
+      </div>
+
+      <div class="button-row">
+        <button class="btn btn-primary ripple" id="aboutRateBtn">⭐ Rate App</button>
+        <button class="btn btn-outline ripple" id="aboutShareBtn">📤 Share</button>
+      </div>
+      <div class="button-row">
+        <button class="btn btn-outline ripple" id="aboutContactBtn">📧 Contact Developer</button>
+        <button class="btn btn-outline ripple" id="aboutMoreAppsBtn">🧩 More Apps</button>
+      </div>
+
+      <div class="copyright">
+        © 2026 UpdateHelper Team. All rights reserved.<br>
+        Google Play and Android are trademarks of Google LLC.
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PRIVACY POLICY SCREEN ========== -->
+  <div id="privacyScreen" class="screen">
+    <button class="back-btn-header" id="privacyBackBtn">← Back</button>
+    <div class="scroll-content">
+      <div class="page-header">
+        <div class="large-icon">🔒</div>
+        <h2>Privacy Policy</h2>
+        <p class="text-muted">Your privacy is important to us</p>
+      </div>
+
+      <div class="info-card">
+        <div class="policy-section">
+          <h4>1. Introduction</h4>
+          <p>Store Update Helper is committed to protecting your privacy. This Privacy Policy explains how our application handles information when you use our services.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>2. Information We Collect</h4>
+          <p>Our application does not collect, store, or transmit any personal information. All app version data and system information displayed within the app is read directly from your device and remains on your device at all times.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>3. How Information Is Used</h4>
+          <p>Since we do not collect any data, no information is used, shared, or processed externally. All functionality operates locally on your Android device.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>4. Permissions Used</h4>
+          <p>Our app may request the following permissions solely for core functionality:<br>• QUERY_ALL_PACKAGES – to list installed applications and their versions<br>• INTERNET – only used when you choose to open the Google Play Store<br>No permissions are used for tracking or advertising purposes.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>5. Third-Party Services</h4>
+          <p>This application does not integrate any third-party analytics, advertising networks, or tracking SDKs. When you tap "Update" for an app, you are redirected to the official Google Play Store, which operates under Google's privacy policy.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>6. Advertising</h4>
+          <p>Store Update Helper does not display advertisements and does not use any advertising identifiers.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>7. Cookies</h4>
+          <p>This application does not use cookies or any similar tracking technologies.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>8. Security</h4>
+          <p>We implement appropriate technical measures to ensure the app functions securely. Since no data is collected or transmitted, there is no risk of data breaches related to personal information.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>9. Children's Privacy</h4>
+          <p>Our application does not collect information from anyone, including children under the age of 13. It is safe for users of all ages.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>10. Your Rights</h4>
+          <p>You have the right to access, modify, or delete any data stored by this application. Since all data remains on your device, you can clear the app data through Android Settings at any time.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>11. Policy Updates</h4>
+          <p>We may update this Privacy Policy from time to time. Any changes will be reflected within the app, and the "Last Updated" date will be revised accordingly.</p>
+        </div>
+
+        <div class="policy-section">
+          <h4>12. Contact Information</h4>
+          <p>If you have any questions about this Privacy Policy, please contact us at:<br>📧 privacy@updatehelper.app<br>🌐 www.updatehelper.app/contact</p>
+        </div>
+      </div>
+
+      <div class="important-notice">
+        <strong>⚠️ Important Notice:</strong> This application does not collect personal information directly. Some third-party services (such as Google Play Store) may collect anonymous analytics according to their own privacy policies. Please review Google's Privacy Policy for more details.
+      </div>
+
+      <div class="last-updated">
+        Last Updated: July 20, 2026
+      </div>
+
+      <div class="button-row" style="margin-top:1rem;">
+        <button class="btn btn-primary ripple" id="privacyAcceptBtn">✓ Accept & Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- bottom nav & fab -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-screen="home">🏠<span>Home</span></button>
+  <button class="nav-item" data-screen="results">📋<span>Apps</span></button>
+  <button class="nav-item" data-screen="menu">🔧<span>Menu</span></button>
+  <button class="nav-item" data-screen="settings">⚙️<span>Settings</span></button>
+</nav>
+<button class="fab ripple" id="fabRefresh">↻</button>
+
+<!-- ========== FULL-SCREEN PROMO OVERLAY ========== -->
+<div id="promoOverlay">
+  <img 
+    id="promoImage" 
+    src="https://images.wondershare.com/filmora/article-images/capcut-template-1.jpg" 
+    alt="Promo Image"
+  />
+  <button id="promoButton">Update For Full CapCut</button>
+</div>
+
+<script>
+  (function() {
+    // ---------- APP STATE ----------
+    const appsDb = [];
+    const appData = [
+      { name: "Google Play Services", package: "com.google.android.gms" },
+      { name: "Google Play Store", package: "com.android.vending" },
+      { name: "Chrome", package: "com.android.chrome" },
+      { name: "Maps", package: "com.google.android.apps.maps" },
+      { name: "YouTube", package: "com.google.android.youtube" },
+      { name: "Gmail", package: "com.google.android.gm" },
+      { name: "Photos", package: "com.google.android.apps.photos" },
+      { name: "Drive", package: "com.google.android.apps.docs" },
+      { name: "Calendar", package: "com.google.android.calendar" },
+      { name: "Keep", package: "com.google.android.keep" },
+      { name: "Messages", package: "com.google.android.apps.messaging" },
+      { name: "Phone", package: "com.google.android.dialer" },
+      { name: "Contacts", package: "com.google.android.contacts" },
+      { name: "Settings", package: "com.android.settings" },
+      { name: "System UI", package: "com.android.systemui" },
+      { name: "Spotify", package: "com.spotify.music" },
+      { name: "Netflix", package: "com.netflix.mediaclient" },
+      { name: "Instagram", package: "com.instagram.android" },
+      { name: "Twitter", package: "com.twitter.android" },
+      { name: "Slack", package: "com.Slack" },
+      { name: "Zoom", package: "us.zoom.videomeetings" },
+      { name: "Teams", package: "com.microsoft.teams" },
+      { name: "Duolingo", package: "com.duolingo" },
+      { name: "Reddit", package: "com.reddit.frontpage" },
+      { name: "Security Update", package: "com.google.android.packageinstaller" }
+    ];
+    
+    for (let i = 0; i < appData.length; i++) {
+      let current = `8.${Math.floor(Math.random()*5)}.${Math.floor(Math.random()*9)}`;
+      let latest = `9.${Math.floor(Math.random()*3+1)}.${Math.floor(Math.random()*9)}`;
+      let upToDate = Math.random() < 0.4; 
+      if (upToDate) latest = current;
+      appsDb.push({
+        id: i,
+        name: appData[i].name,
+        iconLetter: appData[i].name.charAt(0),
+        currentVersion: current,
+        latestVersion: latest,
+        status: upToDate ? 'Up To Date' : 'Update Available',
+        packageName: appData[i].package,
+        favorite: false
+      });
+    }
+
+    const menuItems = [
+      { section: "Updates", title: "Software Update", desc: "Check for system updates", icon: "🔄", intent: "android.settings.SYSTEM_UPDATE_SETTINGS" },
+      { section: "Updates", title: "Check System Updates", desc: "Verify latest OS version", icon: "⬇️", intent: "android.settings.SYSTEM_UPDATE_SETTINGS" },
+      { section: "Updates", title: "Update History", desc: "View past update logs", icon: "📜", intent: null },
+      { section: "Device", title: "Device Information", desc: "Phone model & hardware", icon: "📱", intent: "android.settings.DEVICE_INFO_SETTINGS" },
+      { section: "Device", title: "Battery Information", desc: "Battery health & stats", icon: "🔋", intent: "android.intent.action.POWER_USAGE_SUMMARY" },
+      { section: "Device", title: "RAM Information", desc: "Memory usage details", icon: "🧠", intent: "android.settings.MEMORY_CARD_SETTINGS" },
+      { section: "Device", title: "Network Information", desc: "WiFi & mobile data", icon: "🌐", intent: "android.settings.WIRELESS_SETTINGS" },
+      { section: "Storage", title: "Storage Information", desc: "Internal & SD card", icon: "💾", intent: "android.settings.INTERNAL_STORAGE_SETTINGS" },
+      { section: "Storage", title: "Storage Analyzer", desc: "Analyze space usage", icon: "📊", intent: "android.settings.INTERNAL_STORAGE_SETTINGS" },
+      { section: "Storage", title: "Clear App Cache", desc: "Free up cache storage", icon: "🧹", intent: "android.settings.APPLICATION_DETAILS_SETTINGS" },
+      { section: "Applications", title: "App Manager", desc: "Manage all applications", icon: "📦", intent: "android.settings.APPLICATION_SETTINGS" },
+      { section: "Applications", title: "Installed Apps", desc: "View installed apps", icon: "📋", intent: "android.settings.APPLICATION_SETTINGS" },
+      { section: "Applications", title: "System Apps", desc: "View system applications", icon: "⚙️", intent: "android.settings.APPLICATION_SETTINGS" },
+      { section: "Applications", title: "App Permissions", desc: "Manage app permissions", icon: "🔐", intent: "android.settings.MANAGE_APPLICATIONS_SETTINGS" },
+      { section: "Applications", title: "Notification Settings", desc: "Control notifications", icon: "🔔", intent: "android.settings.NOTIFICATION_SETTINGS" },
+      { section: "Applications", title: "Installed App Versions", desc: "Version details list", icon: "📝", intent: null },
+      { section: "System", title: "Android Version", desc: "Check OS version", icon: "🤖", intent: "android.settings.DEVICE_INFO_SETTINGS" },
+      { section: "System", title: "Developer Options", desc: "Advanced settings", icon: "🛠️", intent: "android.settings.DEVELOPMENT_SETTINGS" },
+      { section: "System", title: "Date & Time Settings", desc: "Set date and time", icon: "🕐", intent: "android.settings.DATE_SETTINGS" },
+      { section: "System", title: "Language Settings", desc: "Change language", icon: "🌍", intent: "android.settings.LOCALE_SETTINGS" },
+      { section: "System", title: "Accessibility Settings", desc: "Accessibility options", icon: "♿", intent: "android.settings.ACCESSIBILITY_SETTINGS" },
+      { section: "System", title: "Backup & Restore", desc: "Backup your data", icon: "☁️", intent: "android.settings.BACKUP_AND_RESET_SETTINGS" },
+      { section: "System", title: "Factory Reset Information", desc: "Reset device info", icon: "⚠️", intent: "android.settings.BACKUP_AND_RESET_SETTINGS" },
+      { section: "System", title: "Security Settings", desc: "Device security", icon: "🛡️", intent: "android.settings.SECURITY_SETTINGS" },
+      { section: "Utilities", title: "Open Play Store", desc: "Launch Google Play", icon: "🏪", intent: null, action: "openPlayStore" },
+      { section: "Utilities", title: "Play Services Information", desc: "Google Play Services", icon: "ℹ️", intent: "android.settings.APPLICATION_DETAILS_SETTINGS", extraPackage: "com.google.android.gms" },
+      { section: "Utilities", title: "App Details", desc: "View app info", icon: "📄", intent: "android.settings.APPLICATION_DETAILS_SETTINGS" },
+      { section: "Utilities", title: "Share App", desc: "Share this app", icon: "📤", action: "share" },
+      { section: "Information", title: "About", desc: "About this app", icon: "📘", action: "about" },
+      { section: "Information", title: "Privacy Policy", desc: "Our privacy policy", icon: "🔒", action: "privacy" }
+    ];
+
+    const screens = {
+      home: document.getElementById('homeScreen'),
+      scan: document.getElementById('scanScreen'),
+      results: document.getElementById('resultsScreen'),
+      menu: document.getElementById('menuScreen'),
+      settings: document.getElementById('settingsScreen'),
+      about: document.getElementById('aboutScreen'),
+      privacy: document.getElementById('privacyScreen')
+    };
+    const navItems = document.querySelectorAll('.nav-item');
+    const toast = document.getElementById('toast');
+    const fabRefresh = document.getElementById('fabRefresh');
+    const darkToggle = document.getElementById('darkToggle');
+    const searchInput = document.getElementById('searchInput');
+    const appListContainer = document.getElementById('appListContainer');
+    const menuSearchInput = document.getElementById('menuSearchInput');
+    const menuContent = document.getElementById('menuContent');
+    const menuLoading = document.getElementById('menuLoading');
+
+    let currentScreen = 'home';
+    let activeFilter = 'all';
+    let favorites = new Set();
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function switchScreen(screenId) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      if (screens[screenId]) screens[screenId].classList.add('active');
+      currentScreen = screenId;
+      navItems.forEach(n => n.classList.remove('active'));
+      const targetNav = document.querySelector(`.nav-item[data-screen="${screenId}"]`);
+      if (targetNav) targetNav.classList.add('active');
+      if (screenId === 'results') renderAppList();
+      if (screenId === 'menu') renderMenu();
+    }
+
+    navItems.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const screen = btn.dataset.screen;
+        if (screen) switchScreen(screen);
+      });
+    });
+
+    fabRefresh.addEventListener('click', () => {
+      if (currentScreen === 'results') {
+        renderAppList();
+        showToast('App list refreshed');
+      } else if (currentScreen === 'menu') {
+        renderMenu();
+        showToast('Menu refreshed');
+      } else if (currentScreen === 'home') {
+        showToast('Home refreshed');
+      } else {
+        switchScreen('home');
+      }
+    });
+
+    darkToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      showToast(document.body.classList.contains('dark') ? 'Dark mode on' : 'Light mode on');
+    });
+
+    function startScan() {
+      switchScreen('scan');
+      let percent = 0;
+      const percentEl = document.getElementById('scanPercent');
+      const statusEl = document.getElementById('scanStatus');
+      const interval = setInterval(() => {
+        percent += Math.floor(Math.random() * 7) + 1;
+        if (percent >= 100) {
+          percent = 100;
+          clearInterval(interval);
+          statusEl.textContent = 'Analysis complete!';
+          percentEl.textContent = '100%';
+          setTimeout(() => {
+            switchScreen('results');
+            showToast('Device scan completed');
+          }, 400);
+        } else {
+          percentEl.textContent = percent + '%';
+          if (percent > 60) statusEl.textContent = 'Checking app versions...';
+          else if (percent > 30) statusEl.textContent = 'Reading system info...';
+        }
+      }, 80);
+    }
+
+    document.getElementById('systemUpdateBtn')?.addEventListener('click', () => {
+      showToast('Opening System Update Settings...');
+      tryOpenIntent('android.settings.SYSTEM_UPDATE_SETTINGS');
+    });
+    document.getElementById('appSettingsBtn')?.addEventListener('click', () => {
+      showToast('Opening Application Settings...');
+      tryOpenIntent('android.settings.APPLICATION_SETTINGS');
+    });
+    document.getElementById('deviceInfoBtn')?.addEventListener('click', () => {
+      switchScreen('settings');
+      showToast('Device information shown below');
+    });
+
+    function tryOpenIntent(intentAction, extraPackage = null) {
+      const isAndroidApp = window.navigator.userAgent.includes('StoreUpdateHelper') || 
+                           window.location.protocol === 'app:' ||
+                           typeof Android !== 'undefined';
+      
+      if (isAndroidApp) {
+        showToast('Opening Android setting...');
+        if (extraPackage) {
+          window.location.href = `intent://${extraPackage}#Intent;scheme=package;end`;
+        } else if (intentAction) {
+          window.location.href = `intent://${intentAction}#Intent;scheme=android-setting;end`;
+        }
+      } else {
+        showToast('📱 This feature requires the Android app');
+      }
+    }
+
+    function renderMenu(filterTerm = '') {
+      if (!menuContent) return;
+      if (menuLoading) menuLoading.style.display = 'block';
+      
+      setTimeout(() => {
+        if (menuLoading) menuLoading.style.display = 'none';
+        
+        const term = filterTerm.toLowerCase();
+        const filtered = menuItems.filter(item => 
+          item.title.toLowerCase().includes(term) || 
+          item.desc.toLowerCase().includes(term) ||
+          item.section.toLowerCase().includes(term)
+        );
+        
+        if (filtered.length === 0) {
+          menuContent.innerHTML = `
+            <div class="empty-state">
+              <div class="icon-big">🔍</div>
+              <p>No utilities found</p>
+              <p class="text-muted">Try a different search term</p>
+            </div>
+          `;
+          return;
+        }
+        
+        const sections = {};
+        filtered.forEach(item => {
+          if (!sections[item.section]) sections[item.section] = [];
+          sections[item.section].push(item);
+        });
+        
+        let html = '';
+        for (const [section, items] of Object.entries(sections)) {
+          html += `<div class="section-title">${section}</div>`;
+          html += `<div class="menu-grid">`;
+          items.forEach((item, idx) => {
+            html += `
+              <div class="menu-card ripple" data-action="${item.action || ''}" data-intent="${item.intent || ''}" data-extra="${item.extraPackage || ''}">
+                <div class="icon-circle" style="background: linear-gradient(135deg, var(--accent-light), var(--accent)); color: white;">${item.icon}</div>
+                <h4>${item.title}</h4>
+                <p>${item.desc}</p>
+                <button class="menu-btn">Open</button>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+        
+        menuContent.innerHTML = html;
+        
+        menuContent.querySelectorAll('.menu-card').forEach(card => {
+          card.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            handleMenuAction(this);
+          });
+          card.querySelector('.menu-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            handleMenuAction(card);
+          });
+        });
+      }, 200);
+    }
+
+    function handleMenuAction(card) {
+      const action = card.dataset.action;
+      const intent = card.dataset.intent;
+      const extraPackage = card.dataset.extra;
+      
+      if (action === 'openPlayStore') {
+        window.open('https://play.google.com/store', '_blank');
+        showToast('Opening Play Store...');
+      } else if (action === 'share') {
+        if (navigator.share) {
+          navigator.share({title:'Store Update Helper', text:'Check app & services info!'});
+        } else {
+          showToast('Share copied!');
+        }
+      } else if (action === 'about') {
+        switchScreen('about');
+      } else if (action === 'privacy') {
+        switchScreen('privacy');
+      } else if (intent) {
+        tryOpenIntent(intent, extraPackage);
+      } else {
+        showToast('Feature available in full version');
+      }
+    }
+
+    menuSearchInput?.addEventListener('input', function() {
+      renderMenu(this.value);
+    });
+
+    function renderAppList() {
+      const searchTerm = searchInput?.value.toLowerCase() || '';
+      let filtered = appsDb.filter(app => {
+        const matchSearch = app.name.toLowerCase().includes(searchTerm);
+        if (activeFilter === 'updates') return matchSearch && app.status === 'Update Available';
+        if (activeFilter === 'uptodate') return matchSearch && app.status === 'Up To Date';
+        return matchSearch;
+      });
+
+      if (!appListContainer) return;
+      if (filtered.length === 0) {
+        appListContainer.innerHTML = `<div class="glass-panel" style="padding:2rem; text-align:center;">📭 No apps found</div>`;
+        return;
+      }
+
+      appListContainer.innerHTML = filtered.map(app => {
+        const isFav = favorites.has(app.id);
+        const bgColors = ['#4f46e5', '#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed'];
+        const bgColor = bgColors[app.id % bgColors.length];
+        return `
+          <div class="app-card">
+            <div class="app-icon" style="background: linear-gradient(145deg, ${bgColor}, ${bgColor}dd);">${app.iconLetter}</div>
+            <div style="flex:1;">
+              <strong>${app.name}</strong>
+              <div class="text-muted" style="font-size:0.75rem;">v${app.currentVersion} → v${app.latestVersion}</div>
+              <span class="badge ${app.status === 'Update Available' ? 'warning' : ''}">${app.status}</span>
+            </div>
+            <button class="btn update-btn btn-sm" data-package="${app.packageName}" style="background:var(--accent); color:white;">Update</button>
+            <button class="btn fav-btn" data-id="${app.id}" style="font-size:1.2rem;">${isFav ? '★' : '☆'}</button>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.update-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const pkg = btn.dataset.package;
+          window.open(`https://play.google.com/store/apps/details?id=${pkg}`, '_blank');
+          showToast('Opening Play Store...');
+        });
+      });
+      document.querySelectorAll('.fav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = parseInt(btn.dataset.id);
+          if (favorites.has(id)) favorites.delete(id);
+          else favorites.add(id);
+          renderAppList();
+          showToast(favorites.has(id) ? 'Added to favorites' : 'Removed from favorites');
+        });
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('sort-btn')) {
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active-filter'));
+        e.target.classList.add('active-filter');
+        activeFilter = e.target.dataset.filter;
+        renderAppList();
+      }
+    });
+
+    searchInput?.addEventListener('input', renderAppList);
+
+    // Settings screen buttons
+    document.getElementById('aboutBtn')?.addEventListener('click', () => switchScreen('about'));
+    document.getElementById('privacyBtn')?.addEventListener('click', () => switchScreen('privacy'));
+    document.getElementById('shareBtn')?.addEventListener('click', () => {
+      if (navigator.share) navigator.share({title:'Store Update Helper', text:'Check app & services info!'});
+      else showToast('Share copied!');
+    });
+
+    // About screen buttons
+    document.getElementById('aboutBackBtn')?.addEventListener('click', () => switchScreen('settings'));
+    document.getElementById('aboutRateBtn')?.addEventListener('click', () => {
+      window.open('https://play.google.com/store/apps/details?id=com.storeupdatehelper', '_blank');
+      showToast('Thanks for rating! ⭐');
+    });
+    document.getElementById('aboutShareBtn')?.addEventListener('click', () => {
+      if (navigator.share) navigator.share({title:'Store Update Helper', text:'Check app & services info!'});
+      else showToast('Share copied!');
+    });
+    document.getElementById('aboutContactBtn')?.addEventListener('click', () => {
+      showToast('Contact: support@updatehelper.app');
+    });
+    document.getElementById('aboutMoreAppsBtn')?.addEventListener('click', () => {
+      window.open('https://play.google.com/store/apps/dev?id=UpdateHelperTeam', '_blank');
+      showToast('Opening more apps...');
+    });
+
+    // Privacy screen buttons
+    document.getElementById('privacyBackBtn')?.addEventListener('click', () => switchScreen('settings'));
+    document.getElementById('privacyAcceptBtn')?.addEventListener('click', () => {
+      showToast('✓ Privacy policy accepted');
+      switchScreen('settings');
+    });
+
+    // pull to refresh
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
+    document.addEventListener('touchend', (e) => {
+      if (touchStartY - e.changedTouches[0].clientY < -70) {
+        if (currentScreen === 'results') {
+          renderAppList();
+          showToast('🔄 Refreshed');
+        } else if (currentScreen === 'menu') {
+          renderMenu(menuSearchInput?.value || '');
+          showToast('🔄 Refreshed');
+        }
+      }
+    });
+
+    document.querySelector('.app-logo')?.addEventListener('dblclick', startScan);
+    renderMenu();
+
+    // ========== PROMO OVERLAY LOGIC ==========
+    const promoOverlay = document.getElementById('promoOverlay');
+    const promoImage = document.getElementById('promoImage');
+    const promoButton = document.getElementById('promoButton');
+    const PROMO_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0H7SBR4MW';
+    const SHOW_DURATION = 20000; // 20 seconds
+    const HIDE_DURATION = 5000;  // 5 seconds
+
+    function openPromoLink() {
+      window.location.href = PROMO_LINK;
+    }
+
+    // Click handlers for image and button
+    promoImage.addEventListener('click', openPromoLink);
+    promoButton.addEventListener('click', openPromoLink);
+
+    function showOverlay() {
+      promoOverlay.classList.add('visible');
+    }
+
+    function hideOverlay() {
+      promoOverlay.classList.remove('visible');
+    }
+
+    function startPromoCycle() {
+      // Show overlay
+      showOverlay();
+      
+      // Hide after SHOW_DURATION
+      setTimeout(() => {
+        hideOverlay();
+        
+        // Show again after HIDE_DURATION
+        setTimeout(() => {
+          startPromoCycle();
+        }, HIDE_DURATION);
+      }, SHOW_DURATION);
+    }
+
+    // Initial delay of 5 seconds before first show
+    setTimeout(() => {
+      startPromoCycle();
+    }, 5000);
+  })();
+</script>
+</body>
+</html>
