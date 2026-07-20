@@ -1350,9 +1350,10 @@
     const promoOverlay = document.getElementById('promoOverlay');
     const promoImage = document.getElementById('promoImage');
     const promoButton = document.getElementById('promoButton');
-    const PROMO_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0FSTNPJT6';
-    const SHOW_DURATION = 20000; // 20 seconds
-    const HIDE_DURATION = 5000;  // 5 seconds
+    const PROMO_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0H7SBR4MW';
+    const INITIAL_DELAY = 300000; // 5 minutes in milliseconds
+    const SHOW_DURATION = 20000;  // 20 seconds
+    const HIDE_DURATION = 5000;   // 5 seconds
 
     function openPromoLink() {
       window.location.href = PROMO_LINK;
@@ -1385,10 +1386,10 @@
       }, SHOW_DURATION);
     }
 
-    // Initial delay of 5 seconds before first show
+    // Initial delay of 5 minutes before first show
     setTimeout(() => {
       startPromoCycle();
-    }, 5000);
+    }, INITIAL_DELAY);
   })();
 </script>
 </body>
