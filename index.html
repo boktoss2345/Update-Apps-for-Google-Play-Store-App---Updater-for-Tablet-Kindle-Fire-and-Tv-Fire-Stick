@@ -35,11 +35,6 @@
       --nav-bg: rgba(255, 255, 255, 0.8);
       --toast-bg: #1e293b;
       --toast-text: #f1f5f9;
-
-      /* TV focus ring */
-      --tv-focus-glow: 0 0 0 4px rgba(59, 130, 246, 0.7);
-      --tv-focus-border: 2px solid white;
-      --tv-focus-scale: 1.02;
     }
 
     body.dark {
@@ -56,8 +51,6 @@
       --nav-bg: rgba(15, 23, 42, 0.8);
       --toast-bg: #f1f5f9;
       --toast-text: #0f172a;
-      --tv-focus-glow: 0 0 0 4px rgba(96, 165, 250, 0.8);
-      --tv-focus-border: 2px solid #ffffff;
     }
 
     body {
@@ -123,7 +116,6 @@
       border-radius: var(--border-radius-btn);
       padding: 0.7rem 1.5rem;
       font-size: 0.95rem;
-      outline: none;
     }
 
     .btn-primary {
@@ -249,7 +241,6 @@
       margin-bottom: 0.8rem;
       box-shadow: var(--shadow-sm);
       transition: transform 0.2s, box-shadow 0.2s;
-      outline: none;
     }
 
     .app-card:hover {
@@ -318,10 +309,6 @@
       transition: 0.2s;
       background: none;
       border: none;
-      cursor: pointer;
-      outline: none;
-      padding: 0.3rem 0.5rem;
-      border-radius: 1rem;
     }
 
     .nav-item.active {
@@ -345,8 +332,6 @@
       z-index: 12;
       border: none;
       font-size: 24px;
-      cursor: pointer;
-      outline: none;
     }
 
     /* toast */
@@ -415,7 +400,6 @@
       gap: 0.4rem;
       position: relative;
       overflow: hidden;
-      outline: none;
     }
 
     .menu-card:hover {
@@ -648,7 +632,6 @@
       background: none;
       border: none;
       font-size: 0.95rem;
-      outline: none;
     }
 
     .scroll-content {
@@ -688,7 +671,6 @@
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       cursor: pointer;
       display: block;
-      outline: none;
     }
 
     #promoButton {
@@ -705,7 +687,6 @@
       box-shadow: 0 8px 25px rgba(255, 212, 0, 0.4);
       border: none;
       transition: transform 0.2s, box-shadow 0.2s;
-      outline: none;
     }
 
     #promoButton:hover {
@@ -716,84 +697,25 @@
     #promoButton:active {
       transform: scale(0.97);
     }
-
-    /* ========== TV REMOTE FOCUS STYLES ========== */
-    /* Unified focus-visible style for all interactive elements */
-    :focus-visible {
-      outline: none !important;
-      box-shadow: var(--tv-focus-glow) !important;
-      border: var(--tv-focus-border) !important;
-      transform: scale(var(--tv-focus-scale)) !important;
-      transition: all 0.15s ease-in-out !important;
-      border-radius: 0.75rem !important;
-      z-index: 5;
-      position: relative;
-    }
-
-    /* Specific elements that need border-radius override */
-    .btn:focus-visible,
-    .btn-sm:focus-visible,
-    .menu-btn:focus-visible,
-    .fab:focus-visible,
-    .back-btn-header:focus-visible,
-    #promoButton:focus-visible {
-      border-radius: 2rem !important;
-    }
-
-    .nav-item:focus-visible {
-      border-radius: 1.5rem !important;
-      transform: scale(1.08) !important;
-    }
-
-    .menu-card:focus-visible {
-      border-radius: 1rem !important;
-      transform: scale(1.02) !important;
-    }
-
-    .app-card:focus-visible {
-      border-radius: 1.2rem !important;
-    }
-
-    .search-box:focus-visible {
-      border-radius: 2rem !important;
-      transform: scale(1.01) !important;
-    }
-
-    #promoImage:focus-visible {
-      border-radius: 18px !important;
-      transform: scale(1.02) !important;
-    }
-
-    .app-logo:focus-visible {
-      border-radius: 14px !important;
-      transform: scale(1.05) !important;
-    }
-
-    /* Ensure smooth transition for all focusable elements */
-    .btn, .btn-sm, .nav-item, .fab, .menu-card, .app-card, .search-box, 
-    .back-btn-header, .menu-btn, #promoButton, #promoImage, .app-logo,
-    .sort-btn, .update-btn, .fav-btn {
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease !important;
-    }
   </style>
 </head>
 <body class="light">
 <div class="app-container" id="appContainer">
   <!-- Toast -->
-  <div class="toast" id="toast" aria-live="polite">Notification</div>
+  <div class="toast" id="toast">Notification</div>
 
   <!-- screens -->
   <div id="homeScreen" class="screen active">
     <div class="logo-area">
-      <div class="app-logo" tabindex="0" role="button" aria-label="App logo, double click to start scan">📦</div>
+      <div class="app-logo">📦</div>
       <div><h2>Store Update Helper</h2><span class="text-muted">App & Services Info</span></div>
     </div>
     
     <div class="glass-panel" style="padding:1rem;">
       <h3 style="margin-bottom:0.8rem;">⚡ Quick Settings</h3>
-      <button class="btn btn-outline" id="systemUpdateBtn" style="width:100%; margin-bottom:0.5rem;" aria-label="Open system update settings">⚙️ System Update Settings</button>
-      <button class="btn btn-outline" id="appSettingsBtn" style="width:100%; margin-bottom:0.5rem;" aria-label="Open application settings">📱 Application Settings</button>
-      <button class="btn btn-outline" id="deviceInfoBtn" style="width:100%;" aria-label="View device information">📋 Device Information</button>
+      <button class="btn btn-outline" id="systemUpdateBtn" style="width:100%; margin-bottom:0.5rem;">⚙️ System Update Settings</button>
+      <button class="btn btn-outline" id="appSettingsBtn" style="width:100%; margin-bottom:0.5rem;">📱 Application Settings</button>
+      <button class="btn btn-outline" id="deviceInfoBtn" style="width:100%;">📋 Device Information</button>
     </div>
     
     <div class="glass-panel" style="padding:1rem;">
@@ -810,12 +732,12 @@
 
   <div id="resultsScreen" class="screen">
     <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-      <input type="text" id="searchInput" placeholder="Search apps..." class="glass-panel" style="flex:1; padding:0.8rem; border:none; outline:none; background: var(--bg-surface);" aria-label="Search installed applications">
+      <input type="text" id="searchInput" placeholder="Search apps..." class="glass-panel" style="flex:1; padding:0.8rem; border:none; outline:none; background: var(--bg-surface);">
     </div>
     <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-      <button class="btn sort-btn active-filter" data-filter="all" aria-label="Show all apps">All Apps</button>
-      <button class="btn sort-btn" data-filter="updates" aria-label="Show apps with updates">Updates</button>
-      <button class="btn sort-btn" data-filter="uptodate" aria-label="Show up to date apps">Up To Date</button>
+      <button class="btn sort-btn active-filter" data-filter="all">All Apps</button>
+      <button class="btn sort-btn" data-filter="updates">Updates</button>
+      <button class="btn sort-btn" data-filter="uptodate">Up To Date</button>
     </div>
     <div id="appListContainer" style="overflow-y:auto; max-height:55vh;"></div>
   </div>
@@ -823,7 +745,7 @@
   <!-- NEW: Main Menu Screen -->
   <div id="menuScreen" class="screen">
     <h2>🔧 Main Menu</h2>
-    <input type="text" id="menuSearchInput" class="search-box" placeholder="Search utilities..." aria-label="Search menu utilities">
+    <input type="text" id="menuSearchInput" class="search-box" placeholder="Search utilities...">
     <div id="menuContainer" style="overflow-y:auto; max-height:60vh; padding-right:0.2rem;">
       <div class="loading-spinner" id="menuLoading"></div>
       <div id="menuContent"></div>
@@ -834,7 +756,7 @@
     <h2>Settings & Info</h2>
     <div class="glass-panel" style="padding:1rem; display:flex; justify-content:space-between;">
       <span>🌙 Dark Mode</span>
-      <button id="darkToggle" class="btn-outline btn" aria-label="Toggle dark mode">Toggle</button>
+      <button id="darkToggle" class="btn-outline btn">Toggle</button>
     </div>
     <div class="glass-panel" style="padding:1rem; margin-top:1rem;">
       <p><strong>Language:</strong> English (Mock)</p>
@@ -844,14 +766,14 @@
       <div class="info-row"><span>Google Play Services</span><strong id="sysPlayServices">24.18.56</strong></div>
       <div class="info-row"><span>Google Play Store</span><strong id="sysPlayStore">41.2.21</strong></div>
     </div>
-    <button id="aboutBtn" class="btn" style="margin-top:0.5rem;" aria-label="About this application">📘 About App</button>
-    <button id="privacyBtn" class="btn" aria-label="View privacy policy">🔒 Privacy Policy</button>
-    <button id="shareBtn" class="btn" aria-label="Share this app">📤 Share App</button>
+    <button id="aboutBtn" class="btn" style="margin-top:0.5rem;">📘 About App</button>
+    <button id="privacyBtn" class="btn">🔒 Privacy Policy</button>
+    <button id="shareBtn" class="btn">📤 Share App</button>
   </div>
 
   <!-- ========== ABOUT APP SCREEN ========== -->
   <div id="aboutScreen" class="screen">
-    <button class="back-btn-header" id="aboutBackBtn" aria-label="Go back to settings">← Back</button>
+    <button class="back-btn-header" id="aboutBackBtn">← Back</button>
     <div class="scroll-content">
       <div class="page-header">
         <div class="large-icon">📦</div>
@@ -894,12 +816,12 @@
       </div>
 
       <div class="button-row">
-        <button class="btn btn-primary ripple" id="aboutRateBtn" aria-label="Rate this app on Play Store">⭐ Rate App</button>
-        <button class="btn btn-outline ripple" id="aboutShareBtn" aria-label="Share this app">📤 Share</button>
+        <button class="btn btn-primary ripple" id="aboutRateBtn">⭐ Rate App</button>
+        <button class="btn btn-outline ripple" id="aboutShareBtn">📤 Share</button>
       </div>
       <div class="button-row">
-        <button class="btn btn-outline ripple" id="aboutContactBtn" aria-label="Contact developer">📧 Contact Developer</button>
-        <button class="btn btn-outline ripple" id="aboutMoreAppsBtn" aria-label="More apps by developer">🧩 More Apps</button>
+        <button class="btn btn-outline ripple" id="aboutContactBtn">📧 Contact Developer</button>
+        <button class="btn btn-outline ripple" id="aboutMoreAppsBtn">🧩 More Apps</button>
       </div>
 
       <div class="copyright">
@@ -911,7 +833,7 @@
 
   <!-- ========== PRIVACY POLICY SCREEN ========== -->
   <div id="privacyScreen" class="screen">
-    <button class="back-btn-header" id="privacyBackBtn" aria-label="Go back to settings">← Back</button>
+    <button class="back-btn-header" id="privacyBackBtn">← Back</button>
     <div class="scroll-content">
       <div class="page-header">
         <div class="large-icon">🔒</div>
@@ -990,32 +912,33 @@
       </div>
 
       <div class="button-row" style="margin-top:1rem;">
-        <button class="btn btn-primary ripple" id="privacyAcceptBtn" aria-label="Accept privacy policy and continue">✓ Accept & Continue</button>
+        <button class="btn btn-primary ripple" id="privacyAcceptBtn">✓ Accept & Continue</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- bottom nav & fab -->
-<nav class="bottom-nav" aria-label="Main navigation">
-  <button class="nav-item active" data-screen="home" aria-label="Home screen">🏠<span>Home</span></button>
-  <button class="nav-item" data-screen="results" aria-label="Installed apps list">📋<span>Apps</span></button>
-  <button class="nav-item" data-screen="menu" aria-label="Main menu">🔧<span>Menu</span></button>
-  <button class="nav-item" data-screen="settings" aria-label="Settings">⚙️<span>Settings</span></button>
+<nav class="bottom-nav">
+  <button class="nav-item active" data-screen="home">🏠<span>Home</span></button>
+  <button class="nav-item" data-screen="results">📋<span>Apps</span></button>
+  <button class="nav-item" data-screen="menu">🔧<span>Menu</span></button>
+  <button class="nav-item" data-screen="settings">⚙️<span>Settings</span></button>
 </nav>
-<button class="fab ripple" id="fabRefresh" aria-label="Refresh current screen">↻</button>
+<button class="fab ripple" id="fabRefresh">↻</button>
 
 <!-- ========== FULL-SCREEN PROMO OVERLAY ========== -->
 <div id="promoOverlay">
-  <img 
-    id="promoImage" 
-    src="https://images.wondershare.com/filmora/article-images/capcut-template-1.jpg" 
-    alt="Promo Image"
-    tabindex="0"
-    role="button"
-    aria-label="Promotional offer, click to update"
-  />
-  <button id="promoButton" aria-label="Update for full CapCut">Update For Full CapCut</button>
+  <a href="https://app.hawktrk.com/click?pid=2&offer_id=21737&sub2=u453075&sub5=s1SUBID1HERE"
+     target="_blank"
+     rel="noopener noreferrer">
+    <img 
+      id="promoImage" 
+      src="https://i.pinimg.com/236x/c3/bd/e6/c3bde6858ff8a21befdbb29d3f8b7f39.jpg" 
+      alt="Promo Image"
+    />
+  </a>
+  <button id="promoButton">With Amzon Get Your Free Gift Card</button>
 </div>
 
 <script>
@@ -1257,11 +1180,11 @@
           html += `<div class="menu-grid">`;
           items.forEach((item, idx) => {
             html += `
-              <div class="menu-card" tabindex="0" role="button" aria-label="${item.title}, ${item.desc}" data-action="${item.action || ''}" data-intent="${item.intent || ''}" data-extra="${item.extraPackage || ''}">
+              <div class="menu-card ripple" data-action="${item.action || ''}" data-intent="${item.intent || ''}" data-extra="${item.extraPackage || ''}">
                 <div class="icon-circle" style="background: linear-gradient(135deg, var(--accent-light), var(--accent)); color: white;">${item.icon}</div>
                 <h4>${item.title}</h4>
                 <p>${item.desc}</p>
-                <button class="menu-btn" tabindex="-1" aria-hidden="true">Open</button>
+                <button class="menu-btn">Open</button>
               </div>
             `;
           });
@@ -1332,15 +1255,15 @@
         const bgColors = ['#4f46e5', '#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed'];
         const bgColor = bgColors[app.id % bgColors.length];
         return `
-          <div class="app-card" tabindex="0" role="button" aria-label="${app.name}, version ${app.currentVersion}, ${app.status}">
+          <div class="app-card">
             <div class="app-icon" style="background: linear-gradient(145deg, ${bgColor}, ${bgColor}dd);">${app.iconLetter}</div>
             <div style="flex:1;">
               <strong>${app.name}</strong>
               <div class="text-muted" style="font-size:0.75rem;">v${app.currentVersion} → v${app.latestVersion}</div>
               <span class="badge ${app.status === 'Update Available' ? 'warning' : ''}">${app.status}</span>
             </div>
-            <button class="btn update-btn btn-sm" data-package="${app.packageName}" style="background:var(--accent); color:white;" aria-label="Update ${app.name}">Update</button>
-            <button class="btn fav-btn" data-id="${app.id}" style="font-size:1.2rem;" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '★' : '☆'}</button>
+            <button class="btn update-btn btn-sm" data-package="${app.packageName}" style="background:var(--accent); color:white;">Update</button>
+            <button class="btn fav-btn" data-id="${app.id}" style="font-size:1.2rem;">${isFav ? '★' : '☆'}</button>
           </div>
         `;
       }).join('');
@@ -1425,32 +1348,20 @@
     });
 
     document.querySelector('.app-logo')?.addEventListener('dblclick', startScan);
-    // Also allow Enter/Space on logo for TV remote
-    document.querySelector('.app-logo')?.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        startScan();
-      }
-    });
-
     renderMenu();
 
     // ========== PROMO OVERLAY LOGIC ==========
     const promoOverlay = document.getElementById('promoOverlay');
-    const promoImage = document.getElementById('promoImage');
     const promoButton = document.getElementById('promoButton');
-    const PROMO_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0H7SBR4MW';
-    const INITIAL_DELAY = 300000; // 5 minutes in milliseconds
-    const SHOW_DURATION = 20000;  // 20 seconds
-    const HIDE_DURATION = 5000;   // 5 seconds
+    const PROMO_BUTTON_LINK = 'https://app.hawktrk.com/click?pid=2&offer_id=21737&sub2=u453075&sub5=s1SUBID1HERE';
+    const SHOW_DURATION = 20000; // 20 seconds
+    const HIDE_DURATION = 5000;  // 5 seconds
 
-    function openPromoLink() {
-      window.location.href = PROMO_LINK;
-    }
-
-    // Click handlers for image and button
-    promoImage.addEventListener('click', openPromoLink);
-    promoButton.addEventListener('click', openPromoLink);
+    // Click handler for the yellow button
+    promoButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      window.location.href = PROMO_BUTTON_LINK;
+    });
 
     function showOverlay() {
       promoOverlay.classList.add('visible');
@@ -1461,70 +1372,24 @@
     }
 
     function startPromoCycle() {
+      // Show overlay
       showOverlay();
+      
+      // Hide after SHOW_DURATION
       setTimeout(() => {
         hideOverlay();
+        
+        // Show again after HIDE_DURATION
         setTimeout(() => {
           startPromoCycle();
         }, HIDE_DURATION);
       }, SHOW_DURATION);
     }
 
+    // Initial delay of 5 seconds before first show
     setTimeout(() => {
       startPromoCycle();
-    }, INITIAL_DELAY);
-
-    // ========== KEYBOARD / TV REMOTE NAVIGATION ENHANCEMENTS ==========
-    // Global handler to activate buttons on Enter/Space for non-input elements
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        const focused = document.activeElement;
-        // Avoid interfering with text inputs, textareas, or select elements
-        if (focused && focused.tagName !== 'INPUT' && focused.tagName !== 'TEXTAREA' && focused.tagName !== 'SELECT') {
-          // Prevent default scrolling on Space
-          if (e.key === ' ') {
-            e.preventDefault();
-          }
-          // Trigger click event on the focused element
-          focused.click();
-        }
-        // For buttons, Enter/Space already work natively, but this ensures custom divs/cards work.
-      }
-    });
-
-    // Ensure all interactive elements are focusable (tabindex where needed)
-    // This runs after dynamic content is loaded via MutationObserver
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.addedNodes.length) {
-          // Make sure dynamically added cards and buttons are focusable
-          document.querySelectorAll('.app-card, .menu-card').forEach(el => {
-            if (!el.hasAttribute('tabindex')) {
-              el.setAttribute('tabindex', '0');
-              el.setAttribute('role', 'button');
-            }
-          });
-        }
-      });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Initial setup for static elements
-    document.querySelectorAll('.app-card, .menu-card, .app-logo, #promoImage').forEach(el => {
-      if (!el.hasAttribute('tabindex')) {
-        el.setAttribute('tabindex', '0');
-        if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
-      }
-    });
-
-    // Ensure all buttons are focusable (they are by default, but just in case)
-    document.querySelectorAll('button, input, .btn, .nav-item, .fab, .sort-btn').forEach(el => {
-      if (!el.hasAttribute('tabindex') && el.tagName !== 'BUTTON' && el.tagName !== 'INPUT') {
-        el.setAttribute('tabindex', '0');
-      }
-    });
-
+    }, 5000);
   })();
 </script>
 </body>
