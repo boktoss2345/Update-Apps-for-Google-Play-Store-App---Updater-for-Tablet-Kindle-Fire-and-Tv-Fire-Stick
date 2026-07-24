@@ -929,16 +929,14 @@
 
 <!-- ========== FULL-SCREEN PROMO OVERLAY ========== -->
 <div id="promoOverlay">
-  <a href="https://app.hawktrk.com/click?pid=2&offer_id=21737&sub2=u453075&sub5=s1SUBID1HERE"
-     target="_blank"
-     rel="noopener noreferrer">
+  <a id="promoImageLink" target="_blank" rel="noopener noreferrer">
     <img 
       id="promoImage" 
-      src="https://i.pinimg.com/236x/c3/bd/e6/c3bde6858ff8a21befdbb29d3f8b7f39.jpg" 
+      src="https://lh3.googleusercontent.com/sitesv/AG8ngQW-p5XbxrhMuLI-z0UnneEysnOC0uaeIhnj9D9b2ck2Ycg084ZitLloQx0TNc5_amJlGyWUjGuKnE10Z1F5mP6iucdGf3nRuSJ6oy-K1qyULfY_-SxbaOWCtW3mi3IIjMrDY3DpGgaik7pL1isJ53bhqEwlkPyoi8o04pnWMmiaqMD3RVzLYVvpfSd7RYk9UfzpnS0HYOZv6U6QYNpeHtwVWsd1x9dVc1bjF7QpViM=w1280" 
       alt="Promo Image"
     />
   </a>
-  <button id="promoButton">With Amzon Get Your Free Gift Card</button>
+  <button id="promoButton">Google Play Store</button>
 </div>
 
 <script>
@@ -1353,14 +1351,39 @@
     // ========== PROMO OVERLAY LOGIC ==========
     const promoOverlay = document.getElementById('promoOverlay');
     const promoButton = document.getElementById('promoButton');
-    const PROMO_BUTTON_LINK = 'https://app.hawktrk.com/click?pid=2&offer_id=21737&sub2=u453075&sub5=s1SUBID1HERE';
+    const promoImageLink = document.getElementById('promoImageLink');
+    const PROMO_DEEP_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0HB6YN5DY';
+    const PROMO_FALLBACK_URL = 'https://www.amazon.com/dp/B0HB6YN5DY';
     const SHOW_DURATION = 20000; // 20 seconds
     const HIDE_DURATION = 5000;  // 5 seconds
+
+    // Function to attempt opening the deep link, with fallback
+    function openPromoLink() {
+      const startTime = Date.now();
+      // Try to open the deep link
+      window.location.href = PROMO_DEEP_LINK;
+      
+      // Fallback: if after 800ms the page is still here (deep link likely failed), go to website
+      setTimeout(function() {
+        if (Date.now() - startTime < 1200) {
+          window.open(PROMO_FALLBACK_URL, '_blank');
+        }
+      }, 800);
+    }
+
+    // Set the image link href and click behavior
+    if (promoImageLink) {
+      promoImageLink.href = PROMO_DEEP_LINK;
+      promoImageLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        openPromoLink();
+      });
+    }
 
     // Click handler for the yellow button
     promoButton.addEventListener('click', function(e) {
       e.stopPropagation();
-      window.location.href = PROMO_BUTTON_LINK;
+      openPromoLink();
     });
 
     function showOverlay() {
