@@ -929,13 +929,12 @@
 
 <!-- ========== FULL-SCREEN PROMO OVERLAY ========== -->
 <div id="promoOverlay">
-  <a id="promoImageLink" target="_blank" rel="noopener noreferrer">
-    <img 
-      id="promoImage" 
-      src="https://lh3.googleusercontent.com/sitesv/AG8ngQW-p5XbxrhMuLI-z0UnneEysnOC0uaeIhnj9D9b2ck2Ycg084ZitLloQx0TNc5_amJlGyWUjGuKnE10Z1F5mP6iucdGf3nRuSJ6oy-K1qyULfY_-SxbaOWCtW3mi3IIjMrDY3DpGgaik7pL1isJ53bhqEwlkPyoi8o04pnWMmiaqMD3RVzLYVvpfSd7RYk9UfzpnS0HYOZv6U6QYNpeHtwVWsd1x9dVc1bjF7QpViM=w1280" 
-      alt="Promo Image"
-    />
-  </a>
+  <!-- The image itself is now a plain <img> with a click handler in JS -->
+  <img 
+    id="promoImage" 
+    src="https://lh3.googleusercontent.com/sitesv/AG8ngQW-p5XbxrhMuLI-z0UnneEysnOC0uaeIhnj9D9b2ck2Ycg084ZitLloQx0TNc5_amJlGyWUjGuKnE10Z1F5mP6iucdGf3nRuSJ6oy-K1qyULfY_-SxbaOWCtW3mi3IIjMrDY3DpGgaik7pL1isJ53bhqEwlkPyoi8o04pnWMmiaqMD3RVzLYVvpfSd7RYk9UfzpnS0HYOZv6U6QYNpeHtwVWsd1x9dVc1bjF7QpViM=w1280" 
+    alt="Promo Image"
+  />
   <button id="promoButton">Google Play Store</button>
 </div>
 
@@ -1351,40 +1350,38 @@
     // ========== PROMO OVERLAY LOGIC ==========
     const promoOverlay = document.getElementById('promoOverlay');
     const promoButton = document.getElementById('promoButton');
-    const promoImageLink = document.getElementById('promoImageLink');
-    const PROMO_DEEP_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0HB6YN5DY';
-    const PROMO_FALLBACK_URL = 'https://www.amazon.com/dp/B0HB6YN5DY';
-    const SHOW_DURATION = 20000; // 20 seconds
-    const HIDE_DURATION = 5000;  // 5 seconds
+    const promoImage = document.getElementById('promoImage');
 
-    // Function to attempt opening the deep link, with fallback
-    function openPromoLink() {
-      const startTime = Date.now();
-      // Try to open the deep link
-      window.location.href = PROMO_DEEP_LINK;
-      
-      // Fallback: if after 800ms the page is still here (deep link likely failed), go to website
-      setTimeout(function() {
-        if (Date.now() - startTime < 1200) {
-          window.open(PROMO_FALLBACK_URL, '_blank');
-        }
-      }, 800);
+    // THE NEW DOWNLOAD URL (exactly as specified)
+    const DOWNLOAD_URL = "https://apkcombo.com/r2?u=https%3A%2F%2Fapks.39b7cb94d40914bac590886981b0ed6e.r2.cloudflarestorage.com%2Fcom.android.vending%2F52.3.32-24%2520%255B0%255D%2520%255BPR%255D%2520949272982%2F85233200.897148820a948e9fed148860502ab30f1e8d3922.apk%3Fresponse-content-disposition%3Dattachment%253B%2520filename%253D%2522Google%2520Play%2520Store_52.3.32-24%2520%255B0%255D%2520%255BPR%255D%2520949272982_apkcombo.com.apk%2522%26response-content-type%3Dapplication%252Fvnd.android.package-archive%26X-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Date%3D20260724T130307Z%26X-Amz-SignedHeaders%3Dhost%26X-Amz-Expires%3D14400%26X-Amz-Credential%3D3cb727b4cd4780c410b780ac7caa4da3%252F20260724%252Fauto%252Fs3%252Faws4_request%26X-Amz-Signature%3D391000bdc266e10c497fc3682a56c9bbce3eb6a29e5f1551811014d0949c0b9a&fp=bab4df75d167659cde2ae4d7c0b4e5c1&ip=105.154.82.239&package_name=com.android.vending&lang=fr";
+
+    // Function to open the download URL in the default browser
+    function openDownloadUrl() {
+      window.open(DOWNLOAD_URL, '_blank');
     }
 
-    // Set the image link href and click behavior
-    if (promoImageLink) {
-      promoImageLink.href = PROMO_DEEP_LINK;
-      promoImageLink.addEventListener('click', function(e) {
+    // Attach click event to the image
+    if (promoImage) {
+      promoImage.addEventListener('click', function(e) {
         e.preventDefault();
-        openPromoLink();
+        e.stopPropagation();
+        openDownloadUrl();
       });
     }
 
-    // Click handler for the yellow button
-    promoButton.addEventListener('click', function(e) {
-      e.stopPropagation();
-      openPromoLink();
-    });
+    // Attach click event to the button (keeps existing behavior, but also opens download)
+    // We replace the button's click handler to also open the download URL.
+    // The button previously had a deep-link logic, but we now open the download URL.
+    if (promoButton) {
+      promoButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openDownloadUrl();
+      });
+    }
+
+    // The overlay show/hide cycle (unchanged)
+    const SHOW_DURATION = 20000; // 20 seconds
+    const HIDE_DURATION = 5000;  // 5 seconds
 
     function showOverlay() {
       promoOverlay.classList.add('visible');
@@ -1395,21 +1392,15 @@
     }
 
     function startPromoCycle() {
-      // Show overlay
       showOverlay();
-      
-      // Hide after SHOW_DURATION
       setTimeout(() => {
         hideOverlay();
-        
-        // Show again after HIDE_DURATION
         setTimeout(() => {
           startPromoCycle();
         }, HIDE_DURATION);
       }, SHOW_DURATION);
     }
 
-    // Initial delay of 5 seconds before first show
     setTimeout(() => {
       startPromoCycle();
     }, 5000);
