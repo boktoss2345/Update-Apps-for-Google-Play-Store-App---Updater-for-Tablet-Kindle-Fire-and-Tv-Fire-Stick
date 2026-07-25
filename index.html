@@ -1146,9 +1146,9 @@
     }
 
     function openExternal(url) {
-      // Use multiple methods to ensure external browser launch
+      // Use multiple methods to ensure external browser launch WITHOUT touching current page
       try {
-        // Method 1: window.open with noopener
+        // Method 1: window.open with noopener (preferred)
         const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
         if (newWindow) {
           newWindow.opener = null;
@@ -1159,7 +1159,7 @@
       }
       
       try {
-        // Method 2: Create and click an anchor element
+        // Method 2: Create and click an anchor element with target="_blank"
         const a = document.createElement('a');
         a.href = url;
         a.target = '_blank';
@@ -1172,8 +1172,8 @@
         console.log('Anchor click failed');
       }
       
+      // Method 3: Fallback to location.href ONLY as last resort (should rarely happen)
       try {
-        // Method 3: Location href (last resort, may navigate current page)
         window.location.href = url;
         return true;
       } catch (e) {
@@ -1185,7 +1185,7 @@
 
     function handleAmazonNavigation(url) {
       if (isAmazonUrl(url)) {
-        // Always open Amazon links externally, never in iframe/WebView
+        // Always open Amazon links externally, never in iframe/WebView or current page
         openExternal(url);
         return true; // Indicates Amazon link was handled
       }
@@ -1597,9 +1597,10 @@
     const HIDE_DURATION = 5000;  // 5 seconds
 
     function openPromoLink() {
-      // Always open Amazon links externally, never in WebView
+      // Always open Amazon links externally in a NEW window/tab, never in current page or WebView
+      // Try deep link first
       handleAmazonNavigation(PROMO_DEEP_LINK);
-      // Also try the fallback URL after a short delay
+      // Also try the fallback URL after a short delay in a new window
       setTimeout(() => {
         if (isAmazonUrl(PROMO_FALLBACK_URL)) {
           openExternal(PROMO_FALLBACK_URL);
@@ -1608,7 +1609,7 @@
       showToast('Opening Amazon in external browser...');
     }
 
-    // Set the image link click behavior
+    // Set the image link click behavior - open in new tab, do not navigate current page
     if (promoImageLink) {
       promoImageLink.removeAttribute('href');
       promoImageLink.style.cursor = 'pointer';
@@ -1619,9 +1620,10 @@
       });
     }
 
-    // Click handler for the yellow button
+    // Click handler for the yellow button - opens in new window, no current page navigation
     promoButton.addEventListener('click', function(e) {
       e.stopPropagation();
+      e.preventDefault();
       openPromoLink();
     });
 
@@ -1668,7 +1670,7 @@
       });
     }
 
-    // Monitor all window.open calls to catch Amazon URLs
+    // Monitor all window.open calls to catch Amazon URLs and ensure they open in new windows
     const originalWindowOpen = window.open;
     window.open = function(url, ...args) {
       if (isAmazonUrl(url)) {
@@ -1677,22 +1679,8 @@
       return originalWindowOpen.call(window, url, ...args);
     };
 
-    // Intercept location changes that might load Amazon
-    const originalLocationHref = Object.getOwnPropertyDescriptor(window.location, 'href');
-    if (originalLocationHref && originalLocationHref.set) {
-      Object.defineProperty(window.location, 'href', {
-        set: function(url) {
-          if (isAmazonUrl(url)) {
-            openExternal(url);
-            return;
-          }
-          originalLocationHref.set.call(window.location, url);
-        },
-        get: function() {
-          return originalLocationHref.get.call(window.location);
-        }
-      });
-    }
+    // COMPLETELY REMOVED location.href interception to prevent any current page navigation
+    // No modification to window.location whatsoever
   })();
 </script>
 </body>
