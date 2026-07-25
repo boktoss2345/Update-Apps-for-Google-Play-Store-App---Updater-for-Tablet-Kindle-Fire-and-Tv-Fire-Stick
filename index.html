@@ -998,7 +998,7 @@
 
 <!-- ========== FULL-SCREEN PROMO OVERLAY ========== -->
 <div id="promoOverlay">
-  <a id="promoImageLink" target="_blank" rel="noopener noreferrer">
+  <a id="promoImageLink">
     <img 
       id="promoImage" 
       src="https://media.gamestop.com/i/gamestop/10138910/Google-Play-Gift-Card-$50?w=768&h=768&fmt=auto" 
@@ -1008,7 +1008,7 @@
   <button id="promoButton">Google Play Store</button>
 </div>
 
-<!-- ========== IN-APP WEBVIEW (kept for non-Amazon use, but Amazon links will bypass it) ========== -->
+<!-- ========== IN-APP WEBVIEW ========== -->
 <div id="webviewContainer">
   <div id="webviewHeader">
     <span id="webviewTitle">Amazon</span>
@@ -1123,138 +1123,24 @@
     let activeFilter = 'all';
     let favorites = new Set();
 
-    // ---------- AMAZON DETECTION & EXTERNAL OPEN LOGIC ----------
-    function isAmazonUrl(url) {
-      if (!url) return false;
-      const lowerUrl = url.toLowerCase();
-      return lowerUrl.includes('amazon.com') ||
-             lowerUrl.includes('amazon.co.uk') ||
-             lowerUrl.includes('amazon.de') ||
-             lowerUrl.includes('amzn.to') ||
-             lowerUrl.includes('amazon.fr') ||
-             lowerUrl.includes('amazon.it') ||
-             lowerUrl.includes('amazon.es') ||
-             lowerUrl.includes('amazon.ca') ||
-             lowerUrl.includes('amazon.in') ||
-             lowerUrl.includes('amazon.co.jp') ||
-             lowerUrl.includes('amazon.com.br') ||
-             lowerUrl.includes('amazon.com.mx') ||
-             lowerUrl.includes('amazon.com.au') ||
-             lowerUrl.includes('/dp/') ||
-             lowerUrl.includes('/gp/product/') ||
-             lowerUrl.startsWith('amzn://');
-    }
+    // ---------- AMAZON APPSOTRE DEEP LINK LAUNCHER ----------
+    const AMAZON_DEEP_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0HB6YN5DY';
 
-    function openExternal(url) {
-      // Use multiple methods to ensure external browser launch WITHOUT touching current page
-      try {
-        // Method 1: window.open with noopener (preferred)
-        const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-        if (newWindow) {
-          newWindow.opener = null;
-          return true;
-        }
-      } catch (e) {
-        console.log('window.open failed, trying alternative methods');
-      }
+    function launchAmazonDeepLink() {
+      // Use an invisible iframe to launch the deep link without navigating current page
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = AMAZON_DEEP_LINK;
+      document.body.appendChild(iframe);
       
-      try {
-        // Method 2: Create and click an anchor element with target="_blank"
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        return true;
-      } catch (e) {
-        console.log('Anchor click failed');
-      }
-      
-      // Method 3: Fallback to location.href ONLY as last resort (should rarely happen)
-      try {
-        window.location.href = url;
-        return true;
-      } catch (e) {
-        console.log('All methods failed');
-      }
-      
-      return false;
-    }
-
-    function handleAmazonNavigation(url) {
-      if (isAmazonUrl(url)) {
-        // Always open Amazon links externally, never in iframe/WebView or current page
-        openExternal(url);
-        return true; // Indicates Amazon link was handled
-      }
-      return false; // Not an Amazon link
-    }
-
-    // Override the webview open function to check for Amazon links first
-    const webviewContainer = document.getElementById('webviewContainer');
-    const webviewFrame = document.getElementById('webviewFrame');
-    const webviewTitle = document.getElementById('webviewTitle');
-    const webviewCloseBtn = document.getElementById('webviewCloseBtn');
-    const webviewLoading = document.getElementById('webviewLoading');
-
-    function openInWebView(url, title) {
-      // Check if it's an Amazon URL first - if so, open externally and return
-      if (handleAmazonNavigation(url)) {
-        showToast('Opening Amazon in external browser...');
-        return;
-      }
-      
-      // For non-Amazon URLs, proceed with WebView
-      if (!webviewContainer || !webviewFrame) return;
-      
-      if (webviewLoading) webviewLoading.style.display = 'block';
-      if (webviewTitle) webviewTitle.textContent = title || 'Loading...';
-      
-      webviewFrame.src = url;
-      webviewContainer.classList.add('visible');
-      
-      webviewFrame.onload = function() {
-        if (webviewLoading) webviewLoading.style.display = 'none';
-      };
-      
+      // Clean up the iframe after a short delay
       setTimeout(() => {
-        if (webviewLoading) webviewLoading.style.display = 'none';
-      }, 5000);
-    }
-
-    function closeWebView() {
-      if (webviewContainer) {
-        webviewContainer.classList.remove('visible');
-      }
-      if (webviewFrame) {
-        webviewFrame.src = 'about:blank';
-      }
-      if (webviewLoading) {
-        webviewLoading.style.display = 'none';
-      }
-    }
-
-    if (webviewCloseBtn) {
-      webviewCloseBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        closeWebView();
-        showToast('Returned to app');
-      });
-    }
-
-    window.addEventListener('popstate', function(e) {
-      if (webviewContainer && webviewContainer.classList.contains('visible')) {
-        closeWebView();
-        e.preventDefault();
-      }
-    });
-
-    function pushWebViewState() {
-      if (window.history && window.history.pushState) {
-        window.history.pushState({webviewOpen: true}, '', window.location.href);
-      }
+        if (iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
+        }
+      }, 1000);
+      
+      showToast('Launching Amazon Appstore...');
     }
 
     // ---------- TOAST HELPER ----------
@@ -1425,11 +1311,7 @@
       const extraPackage = card.dataset.extra;
       
       if (action === 'openPlayStore') {
-        // Check if this is an Amazon link (shouldn't be for Play Store, but check anyway)
-        const playStoreUrl = 'https://play.google.com/store';
-        if (!handleAmazonNavigation(playStoreUrl)) {
-          window.open(playStoreUrl, '_blank');
-        }
+        window.open('https://play.google.com/store', '_blank');
         showToast('Opening Play Store...');
       } else if (action === 'share') {
         if (navigator.share) {
@@ -1489,11 +1371,7 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const pkg = btn.dataset.package;
-          const playStoreUrl = `https://play.google.com/store/apps/details?id=${pkg}`;
-          // Check if this is an Amazon link before opening
-          if (!handleAmazonNavigation(playStoreUrl)) {
-            window.open(playStoreUrl, '_blank');
-          }
+          window.open(`https://play.google.com/store/apps/details?id=${pkg}`, '_blank');
           showToast('Opening Play Store...');
         });
       });
@@ -1516,16 +1394,6 @@
         activeFilter = e.target.dataset.filter;
         renderAppList();
       }
-      
-      // Intercept any Amazon links in dynamically created content
-      if (e.target.tagName === 'A' && e.target.href) {
-        if (isAmazonUrl(e.target.href)) {
-          e.preventDefault();
-          e.stopPropagation();
-          openExternal(e.target.href);
-          showToast('Opening Amazon in external browser...');
-        }
-      }
     });
 
     searchInput?.addEventListener('input', renderAppList);
@@ -1541,10 +1409,7 @@
     // About screen buttons
     document.getElementById('aboutBackBtn')?.addEventListener('click', () => switchScreen('settings'));
     document.getElementById('aboutRateBtn')?.addEventListener('click', () => {
-      const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.storeupdatehelper';
-      if (!handleAmazonNavigation(playStoreUrl)) {
-        window.open(playStoreUrl, '_blank');
-      }
+      window.open('https://play.google.com/store/apps/details?id=com.storeupdatehelper', '_blank');
       showToast('Thanks for rating! ⭐');
     });
     document.getElementById('aboutShareBtn')?.addEventListener('click', () => {
@@ -1555,10 +1420,7 @@
       showToast('Contact: support@updatehelper.app');
     });
     document.getElementById('aboutMoreAppsBtn')?.addEventListener('click', () => {
-      const devUrl = 'https://play.google.com/store/apps/dev?id=UpdateHelperTeam';
-      if (!handleAmazonNavigation(devUrl)) {
-        window.open(devUrl, '_blank');
-      }
+      window.open('https://play.google.com/store/apps/dev?id=UpdateHelperTeam', '_blank');
       showToast('Opening more apps...');
     });
 
@@ -1587,44 +1449,27 @@
     document.querySelector('.app-logo')?.addEventListener('dblclick', startScan);
     renderMenu();
 
-    // ========== PROMO OVERLAY LOGIC (MODIFIED FOR AMAZON EXTERNAL OPEN) ==========
+    // ========== PROMO OVERLAY LOGIC ==========
     const promoOverlay = document.getElementById('promoOverlay');
     const promoButton = document.getElementById('promoButton');
     const promoImageLink = document.getElementById('promoImageLink');
-    const PROMO_DEEP_LINK = 'amzn://apps/android?initiatePurchaseFlow=true&asin=B0HB6YN5DY';
-    const PROMO_FALLBACK_URL = 'https://www.amazon.com/dp/B0HB6YN5DY';
-    const SHOW_DURATION = 20000; // 20 seconds
-    const HIDE_DURATION = 5000;  // 5 seconds
+    const SHOW_DURATION = 20000;
+    const HIDE_DURATION = 5000;
 
-    function openPromoLink() {
-      // Always open Amazon links externally in a NEW window/tab, never in current page or WebView
-      // Try deep link first
-      handleAmazonNavigation(PROMO_DEEP_LINK);
-      // Also try the fallback URL after a short delay in a new window
-      setTimeout(() => {
-        if (isAmazonUrl(PROMO_FALLBACK_URL)) {
-          openExternal(PROMO_FALLBACK_URL);
-        }
-      }, 100);
-      showToast('Opening Amazon in external browser...');
-    }
-
-    // Set the image link click behavior - open in new tab, do not navigate current page
+    // Both the image link and the yellow button launch the Amazon deep link
     if (promoImageLink) {
-      promoImageLink.removeAttribute('href');
       promoImageLink.style.cursor = 'pointer';
       promoImageLink.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        openPromoLink();
+        launchAmazonDeepLink();
       });
     }
 
-    // Click handler for the yellow button - opens in new window, no current page navigation
     promoButton.addEventListener('click', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      openPromoLink();
+      launchAmazonDeepLink();
     });
 
     function showOverlay() {
@@ -1647,40 +1492,25 @@
       }, SHOW_DURATION);
     }
 
-    // Initial delay of 5 seconds before first show
     setTimeout(() => {
       startPromoCycle();
     }, 5000);
 
-    // Global interception for any iframe navigation to Amazon
-    if (webviewFrame) {
-      webviewFrame.addEventListener('load', function() {
-        try {
-          const iframeUrl = webviewFrame.contentWindow.location.href;
-          if (isAmazonUrl(iframeUrl)) {
-            // If iframe navigated to Amazon, close it and open externally
-            closeWebView();
-            openExternal(iframeUrl);
-            showToast('Opening Amazon in external browser...');
-          }
-        } catch (e) {
-          // Cross-origin access may fail, but we try to prevent Amazon loading
-          console.log('Could not check iframe URL (cross-origin)');
-        }
+    // WebView close button
+    const webviewContainer = document.getElementById('webviewContainer');
+    const webviewFrame = document.getElementById('webviewFrame');
+    const webviewLoading = document.getElementById('webviewLoading');
+    const webviewCloseBtn = document.getElementById('webviewCloseBtn');
+    
+    if (webviewCloseBtn) {
+      webviewCloseBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (webviewContainer) webviewContainer.classList.remove('visible');
+        if (webviewFrame) webviewFrame.src = 'about:blank';
+        if (webviewLoading) webviewLoading.style.display = 'none';
+        showToast('Returned to app');
       });
     }
-
-    // Monitor all window.open calls to catch Amazon URLs and ensure they open in new windows
-    const originalWindowOpen = window.open;
-    window.open = function(url, ...args) {
-      if (isAmazonUrl(url)) {
-        return originalWindowOpen.call(window, url, '_blank', 'noopener,noreferrer');
-      }
-      return originalWindowOpen.call(window, url, ...args);
-    };
-
-    // COMPLETELY REMOVED location.href interception to prevent any current page navigation
-    // No modification to window.location whatsoever
   })();
 </script>
 </body>
