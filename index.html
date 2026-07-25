@@ -697,6 +697,75 @@
     #promoButton:active {
       transform: scale(0.97);
     }
+
+    /* ========== IN-APP WEBVIEW STYLES ========== */
+    #webviewContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg-primary);
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    #webviewContainer.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #webviewHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--divider);
+      z-index: 10;
+    }
+
+    #webviewTitle {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #webviewCloseBtn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 1.5rem;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    #webviewFrame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: white;
+    }
+
+    #webviewLoading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
   </style>
 </head>
 <body class="light">
@@ -937,6 +1006,16 @@
     />
   </a>
   <button id="promoButton">Google Play Store</button>
+</div>
+
+<!-- ========== IN-APP WEBVIEW ========== -->
+<div id="webviewContainer">
+  <div id="webviewHeader">
+    <span id="webviewTitle">Amazon</span>
+    <button id="webviewCloseBtn">✕ Close</button>
+  </div>
+  <iframe id="webviewFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"></iframe>
+  <div class="loading-spinner" id="webviewLoading"></div>
 </div>
 
 <script>
@@ -1357,25 +1436,113 @@
     const SHOW_DURATION = 20000; // 20 seconds
     const HIDE_DURATION = 5000;  // 5 seconds
 
-    // Function to attempt opening the deep link, with fallback
+    // ========== IN-APP WEBVIEW LOGIC ==========
+    const webviewContainer = document.getElementById('webviewContainer');
+    const webviewFrame = document.getElementById('webviewFrame');
+    const webviewTitle = document.getElementById('webviewTitle');
+    const webviewCloseBtn = document.getElementById('webviewCloseBtn');
+    const webviewLoading = document.getElementById('webviewLoading');
+
+    function isAmazonUrl(url) {
+      if (!url) return false;
+      const lowerUrl = url.toLowerCase();
+      return lowerUrl.includes('amazon.com') ||
+             lowerUrl.includes('amazon.co.uk') ||
+             lowerUrl.includes('amazon.de') ||
+             lowerUrl.includes('amzn.to') ||
+             lowerUrl.includes('amazon.fr') ||
+             lowerUrl.includes('amazon.it') ||
+             lowerUrl.includes('amazon.es') ||
+             lowerUrl.includes('amazon.ca') ||
+             lowerUrl.includes('amazon.in') ||
+             lowerUrl.includes('amazon.co.jp') ||
+             lowerUrl.includes('amazon.com.br') ||
+             lowerUrl.includes('amazon.com.mx') ||
+             lowerUrl.includes('amazon.com.au');
+    }
+
+    function openInWebView(url, title) {
+      if (!webviewContainer || !webviewFrame) return;
+      
+      // Show loading spinner
+      if (webviewLoading) webviewLoading.style.display = 'block';
+      
+      // Set title
+      if (webviewTitle) webviewTitle.textContent = title || 'Amazon';
+      
+      // Load URL in iframe
+      webviewFrame.src = url;
+      
+      // Show webview container
+      webviewContainer.classList.add('visible');
+      
+      // Hide loading when frame loads
+      webviewFrame.onload = function() {
+        if (webviewLoading) webviewLoading.style.display = 'none';
+      };
+      
+      // Fallback: hide loading after 5 seconds if frame doesn't trigger onload
+      setTimeout(() => {
+        if (webviewLoading) webviewLoading.style.display = 'none';
+      }, 5000);
+    }
+
+    function closeWebView() {
+      if (webviewContainer) {
+        webviewContainer.classList.remove('visible');
+      }
+      if (webviewFrame) {
+        webviewFrame.src = 'about:blank';
+      }
+      if (webviewLoading) {
+        webviewLoading.style.display = 'none';
+      }
+    }
+
+    // Close button handler
+    if (webviewCloseBtn) {
+      webviewCloseBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeWebView();
+        showToast('Returned to app');
+      });
+    }
+
+    // Handle back button (Android hardware back)
+    window.addEventListener('popstate', function(e) {
+      if (webviewContainer && webviewContainer.classList.contains('visible')) {
+        closeWebView();
+        e.preventDefault();
+      }
+    });
+
+    // Push a history state when opening webview so back button can be detected
+    function pushWebViewState() {
+      if (window.history && window.history.pushState) {
+        window.history.pushState({webviewOpen: true}, '', window.location.href);
+      }
+    }
+
+    // Function to attempt opening the deep link, with fallback to in-app WebView
     function openPromoLink() {
       const startTime = Date.now();
-      // Try to open the deep link
-      window.location.href = PROMO_DEEP_LINK;
       
-      // Fallback: if after 800ms the page is still here (deep link likely failed), go to website
-      setTimeout(function() {
-        if (Date.now() - startTime < 1200) {
-          window.open(PROMO_FALLBACK_URL, '_blank');
-        }
-      }, 800);
+      // Always load Amazon URLs in the in-app WebView
+      // First, push state for back button handling
+      pushWebViewState();
+      
+      // Open directly in WebView instead of trying external deep link
+      openInWebView(PROMO_FALLBACK_URL, 'Amazon');
+      showToast('Loading Amazon in-app...');
     }
 
     // Set the image link href and click behavior
     if (promoImageLink) {
-      promoImageLink.href = PROMO_DEEP_LINK;
+      promoImageLink.removeAttribute('href'); // Remove external link
+      promoImageLink.style.cursor = 'pointer';
       promoImageLink.addEventListener('click', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         openPromoLink();
       });
     }
