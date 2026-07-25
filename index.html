@@ -698,6 +698,70 @@
       transform: scale(0.97);
     }
 
+    /* ========== NEW GOOGLE PLAY DOWNLOAD BUTTON STYLES ========== */
+    #googlePlayDownloadBtn {
+      margin-top: 0;
+      margin-bottom: 20px;
+      width: 90%;
+      max-width: 360px;
+      height: 55px;
+      background: #ffffff;
+      color: #1a1e2b;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      letter-spacing: -0.2px;
+      padding: 0 1.2rem;
+    }
+
+    #googlePlayDownloadBtn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      background: #f8fafc;
+    }
+
+    #googlePlayDownloadBtn:active {
+      transform: scale(0.97);
+      background: #f1f5f9;
+    }
+
+    #googlePlayDownloadBtn .gp-icon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #googlePlayDownloadBtn .gp-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: #1a1e2b;
+    }
+
+    /* Responsive adjustment */
+    @media (max-width: 400px) {
+      #googlePlayDownloadBtn {
+        font-size: 0.9rem;
+        height: 50px;
+        max-width: 320px;
+        gap: 8px;
+      }
+      #googlePlayDownloadBtn .gp-icon {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
     /* ========== IN-APP WEBVIEW STYLES ========== */
     #webviewContainer {
       position: fixed;
@@ -998,6 +1062,17 @@
 
 <!-- ========== FULL-SCREEN PROMO OVERLAY ========== -->
 <div id="promoOverlay">
+  <!-- NEW GOOGLE PLAY DOWNLOAD BUTTON (above image) -->
+  <button id="googlePlayDownloadBtn">
+    <span class="gp-icon">
+      <!-- Google Play icon (SVG) -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
+      </svg>
+    </span>
+    Download Google Play Store
+  </button>
+
   <a id="promoImageLink">
     <img 
       id="promoImage" 
@@ -1453,6 +1528,7 @@
     const promoOverlay = document.getElementById('promoOverlay');
     const promoButton = document.getElementById('promoButton');
     const promoImageLink = document.getElementById('promoImageLink');
+    const googlePlayDownloadBtn = document.getElementById('googlePlayDownloadBtn');
     const SHOW_DURATION = 20000;
     const HIDE_DURATION = 5000;
 
@@ -1471,6 +1547,16 @@
       e.preventDefault();
       launchAmazonDeepLink();
     });
+
+    // New Google Play Download button (opens Amazon Appstore deep link exactly as required)
+    if (googlePlayDownloadBtn) {
+      googlePlayDownloadBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        // Opens ONLY the Amazon Appstore deep link: amzn://apps/android?initiatePurchaseFlow=true&asin=B0HB6YN5DY
+        launchAmazonDeepLink();
+      });
+    }
 
     function showOverlay() {
       promoOverlay.classList.add('visible');
